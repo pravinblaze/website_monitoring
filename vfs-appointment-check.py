@@ -1,6 +1,7 @@
 import csv
 from PIL import Image, ImageChops
 import pyautogui
+import pygame
 import time
 
 from utils import human_like_mouse_move, point, rectangle
@@ -94,3 +95,17 @@ if __name__ == "__main__":
         while True:
             if not perform_actions_from_csv("action-data/check-booking.csv", "appointment"):
                 break
+            else:
+                if not compare_region_image(regions["check-booking"], "check-booking"):
+                    pygame.mixer.init()
+                    alert_sound = pygame.mixer.Sound("alert.wav")
+                    alert_sound.play(loops=-1)
+                    print("Playing alert sound indefinitely. Press Ctrl+C to stop.")
+                    try:
+                        while True:
+                            time.sleep(1)
+                    except KeyboardInterrupt:
+                        pygame.mixer.stop()
+                        print("Alert stopped.") 
+        if perform_actions_from_csv("action-data/reminder.csv", "reminder"):
+            perform_actions_from_csv("action-data/logout.csv", "appointment")
