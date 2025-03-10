@@ -11,7 +11,7 @@ def main():
 
     target_region = sys.argv[1]
     csv_file = 'screenshots/regions.csv'
-    
+
     if not os.path.exists('screenshots'):
         os.makedirs('screenshots')
 

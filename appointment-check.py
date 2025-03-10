@@ -34,19 +34,6 @@ def compare_region_image(region: rectangle, name):
 
 
 def perform_actions_from_csv(csv_file: str, region_name: str) -> bool:
-    """
-    Processes the actions specified in a CSV file.
-
-    Each row in the CSV should contain:
-        - description: Description of the action.
-        - x, y: Coordinates for the mouse action.
-        - action: The action to perform (e.g., "click", "scroll_down").
-        - delay: Delay before executing the action.
-    """
-
-    if not compare_region_image(regions[region_name], region_name):
-        print(f"Region '{region_name}' not found.")
-        return False
 
     with open(csv_file, newline="") as file:
         reader = csv.DictReader(file)
@@ -60,14 +47,10 @@ def perform_actions_from_csv(csv_file: str, region_name: str) -> bool:
             print(f"Waiting {delay:.2f} seconds before '{description}' action...")
             time.sleep(delay)
 
+            print(f"Moving to ({x}, {y}) in a human-like fashion for '{description}'.")
             human_like_mouse_move(x, y, steps=20, total_duration=1.0)
 
-            if not compare_region_image(regions[region_name], region_name):
-                print(f"Region '{region_name}' not found.")
-                return False
-
             if action == "click":
-                print(f"Moving to ({x}, {y}) in a human-like fashion for '{description}'.")
                 pyautogui.click(x, y)
             elif action == "scroll_down":
                 print(f"Scrolling down at ({x}, {y}) for '{description}'.")
@@ -91,21 +74,16 @@ if __name__ == "__main__":
 
     # CSV file with the actions (update the filename/path if needed)
     while True:
-        perform_actions_from_csv("action-data/vfs-login.csv", "login")
-        while True:
-            if not perform_actions_from_csv("action-data/check-booking.csv", "appointment"):
-                break
-            else:
-                if not compare_region_image(regions["check-booking"], "check-booking"):
-                    pygame.mixer.init()
-                    alert_sound = pygame.mixer.Sound("alert.wav")
-                    alert_sound.play(loops=-1)
-                    print("Playing alert sound indefinitely. Press Ctrl+C to stop.")
-                    try:
-                        while True:
-                            time.sleep(1)
-                    except KeyboardInterrupt:
-                        pygame.mixer.stop()
-                        print("Alert stopped.") 
-        if perform_actions_from_csv("action-data/reminder.csv", "reminder"):
-            perform_actions_from_csv("action-data/logout.csv", "appointment")
+        perform_actions_from_csv("action-data/availability.csv", "availability")
+        time.sleep(2)
+        if not compare_region_image(regions["availability"], "availability"):
+            pygame.mixer.init()
+            alert_sound = pygame.mixer.Sound("alert.mp3")
+            alert_sound.play(loops=-1)
+            print("Playing alert sound indefinitely. Press Ctrl+C to stop.")
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                pygame.mixer.stop()
+                print("Alert stopped.")
