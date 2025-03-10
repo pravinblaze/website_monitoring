@@ -33,7 +33,7 @@ def compare_region_image(region: rectangle, name):
     return diff.getbbox() is None
 
 
-def perform_actions_from_csv(csv_file: str, region_name: str) -> bool:
+def perform_actions_from_csv(csv_file: str) -> bool:
 
     with open(csv_file, newline="") as file:
         reader = csv.DictReader(file)
@@ -74,7 +74,11 @@ if __name__ == "__main__":
 
     # CSV file with the actions (update the filename/path if needed)
     while True:
-        perform_actions_from_csv("action-data/availability.csv", "availability")
+        perform_actions_from_csv("action-data/refresh.csv")
+        if not compare_region_image(regions["button"], "button"):
+            print("Button not found. Trying again...")
+            continue
+        perform_actions_from_csv("action-data/check-availability.csv")
         time.sleep(2)
         if not compare_region_image(regions["availability"], "availability"):
             pygame.mixer.init()
