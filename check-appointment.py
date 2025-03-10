@@ -1,5 +1,8 @@
 import csv
-from PIL import Image, ImageChops
+import cv2
+import numpy as np
+from skimage.metrics import structural_similarity as ssim
+from PIL import Image
 import pyautogui
 import pygame
 import time
@@ -7,30 +10,41 @@ import time
 from utils import human_like_mouse_move, point, rectangle
 
 
-def compare_region_image(region: rectangle, name):
+def compare_region_image(region: rectangle, name, threshold=0.9):
     """
-    Compares a stored baseline image with a live screenshot of a specified rectangular region.
+    Compares a stored baseline image with a live screenshot of a specified rectangular region using SSIM.
 
     Parameters:
         region: A rectangle object with attributes top_left (point) and bottom_right (point)
         name: String used to locate the baseline image in the 'screenshots' folder named '{name}.png'
+        threshold: SSIM threshold (default 0.9), values closer to 1 indicate more strict similarity checking.
 
     Returns:
-        True if the images are identical, False otherwise.
+        True if the SSIM score is above the threshold, False otherwise.
     """
     # Read baseline image from the screenshots folder
     baseline_path = f"screenshots/{name}.png"
-    baseline_image = Image.open(baseline_path)
+    baseline_image = Image.open(baseline_path).convert("L")  # Convert to grayscale
 
     # Take a screenshot of the specified region using PyAutoGUI
     live_image = pyautogui.screenshot(
         region=(region.top_left.x, region.top_left.y, region.width, region.height)
     )
-    live_image = live_image.convert("RGB")  # Ensure format consistency
+    live_image = live_image.convert("L")  # Convert to grayscale for SSIM
 
-    # Compare images
-    diff = ImageChops.difference(baseline_image, live_image)
-    return diff.getbbox() is None
+    # Convert PIL images to NumPy arrays for OpenCV processing
+    baseline_np = np.array(baseline_image)
+    live_np = np.array(live_image)
+
+    # Resize images to the same size (PyAutoGUI might have slight dimension mismatches)
+    if baseline_np.shape != live_np.shape:
+        live_np = cv2.resize(live_np, (baseline_np.shape[1], baseline_np.shape[0]))
+
+    # Compute SSIM score
+    score, _ = ssim(baseline_np, live_np, full=True)
+
+    print(f"SSIM Score: {score}, for region: {name}")  # Debugging info
+    return score >= threshold  # Return True if images are similar enough
 
 
 def perform_actions_from_csv(csv_file: str) -> bool:
@@ -75,6 +89,7 @@ if __name__ == "__main__":
     # CSV file with the actions (update the filename/path if needed)
     while True:
         perform_actions_from_csv("action-data/refresh.csv")
+        time.sleep(2)
         if not compare_region_image(regions["button"], "button"):
             print("Button not found. Trying again...")
             continue
