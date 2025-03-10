@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # CSV file with the actions (update the filename/path if needed)
     while True:
         perform_actions_from_csv("action-data/refresh.csv")
-        time.sleep(2)
+        time.sleep(5)
         if not compare_region_image(regions["button"], "button"):
             print("Button not found. Trying again...")
             continue
