@@ -8,6 +8,7 @@ import pygame
 import time
 
 from utils import human_like_mouse_move, point, rectangle
+from take_screeshot import take_screenshot
 
 
 def compare_region_image(region: rectangle, name, threshold=0.9):
@@ -94,8 +95,9 @@ if __name__ == "__main__":
             print("Button not found. Trying again...")
             continue
         perform_actions_from_csv("action-data/check-availability.csv")
-        time.sleep(2)
+        time.sleep(5)
         if not compare_region_image(regions["availability"], "availability"):
+            take_screenshot("browser")
             pygame.mixer.init()
             alert_sound = pygame.mixer.Sound("alert.mp3")
             alert_sound.play(loops=-1)

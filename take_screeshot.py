@@ -4,12 +4,8 @@ import sys
 import pyautogui
 from utils import point, rectangle
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python take-screenshot.py <region_name>")
-        sys.exit(1)
+def take_screenshot(target_region):
 
-    target_region = sys.argv[1]
     csv_file = 'screenshots/regions.csv'
 
     if not os.path.exists('screenshots'):
@@ -35,5 +31,11 @@ def main():
     if not region_found:
         print(f"Region '{target_region}' not found in {csv_file}.")
 
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print("Usage: python take-screenshot.py <region_name>")
+        sys.exit(1)
+
+    target_region = sys.argv[1]
+    take_screenshot(target_region)
