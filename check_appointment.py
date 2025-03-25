@@ -7,7 +7,7 @@ import pyautogui
 import pygame
 import time
 
-from utils import human_like_mouse_move, point, rectangle
+from utils import point, rectangle
 from take_screeshot import take_screenshot
 
 
@@ -63,7 +63,7 @@ def perform_actions_from_csv(csv_file: str) -> bool:
             time.sleep(delay)
 
             print(f"Moving to ({x}, {y}) in a human-like fashion for '{description}'.")
-            human_like_mouse_move(x, y, steps=20, total_duration=1.0)
+            pyautogui.moveTo(x, y)
 
             if action == "click":
                 pyautogui.click(x, y)
@@ -74,6 +74,17 @@ def perform_actions_from_csv(csv_file: str) -> bool:
                 print(f"Action '{action}' for '{description}' is not supported.")
 
     return True
+
+def check_condition(region, name, timeout=10, interval=0.1, delay=0) -> bool:
+    time.sleep(delay)
+    initial_time = time.time()
+    current_time = initial_time
+    while current_time - initial_time <= timeout:
+        time.sleep(interval)
+        if compare_region_image(region, name):
+            return True
+        current_time = time.time()
+    return False
 
 
 if __name__ == "__main__":
@@ -90,13 +101,11 @@ if __name__ == "__main__":
     # CSV file with the actions (update the filename/path if needed)
     while True:
         perform_actions_from_csv("action-data/refresh.csv")
-        time.sleep(5)
-        if not compare_region_image(regions["button"], "button"):
+        if not check_condition(regions["button"], "button", delay=2):
             print("Button not found. Trying again...")
             continue
         perform_actions_from_csv("action-data/check-availability.csv")
-        time.sleep(5)
-        if not compare_region_image(regions["availability"], "availability"):
+        if not check_condition(regions["availability"], "availability"):
             take_screenshot("browser")
             pygame.mixer.init()
             alert_sound = pygame.mixer.Sound("alert.mp3")
